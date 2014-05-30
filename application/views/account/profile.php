@@ -25,26 +25,32 @@
             Hier kannst du deine Profilinformationen bearbeiten.
         </p>
 
-        <form>
+        <?php
+        if (validation_errors())
+        {
+            echo '<div class="alert alert-danger">';
+            echo validation_errors();
+            echo '</div>';
+
+        }
+        ?>
+
+        <form method="post" action="<?php echo base_url(); ?>account/profile_validation">
             <div class="form-group">
                 <label>Vorname</label>
-                <input type="text" class="form-control" placeholder="Vorname" value="<?php echo $prename; ?>">
+                <input type="text" name="prename" class="form-control" placeholder="Vorname" value="<?php echo $prename; ?>">
             </div>
             <div class="form-group">
                 <label>Nachname</label>
-                <input type="text" class="form-control" placeholder="Nachname" value="<?php echo $surname; ?>">
-            </div>
-            <div class="form-group">
-                <label>Emailadresse</label>
-                <input type="email" class="form-control" placeholder="Emailadresse" value="<?php echo $email; ?>">
+                <input type="text" name="surname" class="form-control" placeholder="Nachname" value="<?php echo $surname; ?>">
             </div>
             <div class="form-group">
                 <label>Passwort</label>
-                <input type="password" class="form-control" placeholder="Passwort" >
+                <input type="password" name="password" class="form-control" placeholder="Passwort" >
             </div>
             <div class="form-group">
                 <label>Passwort bestätigen</label>
-                <input type="password" class="form-control" placeholder="Passwort bestätigen" >
+                <input type="password" name="cpassword" class="form-control" placeholder="Passwort bestätigen" >
             </div>
             <div class="form-group action">
                 <input type="submit" class="btn btn-success" value="Speichern">

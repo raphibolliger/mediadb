@@ -26,6 +26,25 @@ class Account_model extends CI_Model
         }
     }
 
+    public function check_userstate()
+    {
+        // get userstate to check it
+        $this->db->where('email', $this->input->post('email'));
+        $query = $this->db->get('users');
+        $user = $query->result_array();
+
+        $status = $user['0']['status'];
+
+        if ($status == 1)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
     public function getUser($userid)
     {
         $this->db->where('id', $userid);
@@ -65,4 +84,54 @@ class Account_model extends CI_Model
             return false;
         }
     }
+
+    public function updateUser($userid)
+    {
+        $data = array(
+            'prename' => $this->input->post('prename'),
+            'surname' => $this->input->post('surname')
+        );
+
+        $this->db->where('id', $userid);
+        $this->db->update('users', $data);
+
+    }
+
+    public function updateUserWithPw($userid, $salt)
+    {
+        $data = array(
+            'prename' => $this->input->post('prename'),
+            'surname' => $this->input->post('surname'),
+            'password' => sha1($salt.$this->input->post('password'))
+        );
+
+        $this->db->where('id', $userid);
+        $this->db->update('users', $data);
+    }
+
+    public function switchuserstate($userid)
+    {
+        $this->db->where('id', $userid);
+        $query = $this->db->get('users', 1);
+        $user = $query->result_array();
+
+        $userstate = $user[0]['status'];
+
+        $newuserstat = !$userstate;
+
+        $data = array(
+            'status' => $newuserstat,
+        );
+
+        $this->db->where('id', $userid);
+        $this->db->update('users', $data);
+    }
+
+    public function emailcount()
+    {
+        $this->db->where('email', $this->input->post('email'));
+        $query = $this->db->get('users');
+        return $query->num_rows();
+    }
+
 }

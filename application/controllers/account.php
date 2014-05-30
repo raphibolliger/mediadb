@@ -35,7 +35,7 @@ class Account extends CI_Controller
 
         // login validation
         $this->load->library('form_validation');
-        $this->form_validation->set_rules('email', 'Emailadresse', 'required|trim|xss_clean|callback_validate_credentials');
+        $this->form_validation->set_rules('email', 'Emailadresse', 'required|trim|xss_clean|callback_validate_userstate|callback_validate_credentials');
         $this->form_validation->set_rules('password', 'Passwort', 'required|xss_clean');
 
         if($this->form_validation->run())
@@ -64,6 +64,7 @@ class Account extends CI_Controller
                 'email' => $this->input->post('email'),
                 'rights' => $user['0']['rights'],
                 'status' => $user['0']['status'],
+                'salt' => $user['0']['salt'],
                 'is_logged_in' => 1
             );
 
@@ -73,6 +74,21 @@ class Account extends CI_Controller
         else
         {
             $this->form_validation->set_message('validate_credentials', 'Benutzername oder Passwort ist falsch.');
+            return false;
+        }
+    }
+
+    public function validate_userstate()
+    {
+        $this->load->model('account_model');
+
+        if ($this->account_model->check_userstate())
+        {
+            return true;
+        }
+        else
+        {
+            $this->form_validation->set_message('validate_userstate', 'Das Benutzerkonto ist noch nicht freigeschaltet. Das Profil muss von einem Administrator freigeschaltet weren, melde dich unter info@film.raphibolliger.ch');
             return false;
         }
     }
@@ -154,6 +170,63 @@ class Account extends CI_Controller
         $data['prename'] = $userData[0]['prename'];
         $data['surname'] = $userData[0]['surname'];
         $data['email'] = $userData[0]['email'];
+
+        $this->load->view('account/profile', $data);
+
+        // finally load the footer
+        $this->load->view('template/footer');
+    }
+
+    public function profile_validation()
+    {
+        // no access for not logged in users
+        if (!$this->session->userdata('is_logged_in'))
+        {
+            redirect("account/login");
+        }
+
+        //load model
+        $this->load->model('account_model');
+
+        //set title and load header and navigation first
+        $data['pageTitle'] = "Benutzerprofil";
+        $data['bodyid'] = "account";
+        $this->load->view('template/header', $data);
+        $this->load->view('template/navigation');
+
+        $this->load->library('form_validation');
+
+        $this->form_validation->set_rules('prename', 'Vorname', 'required|trim');
+        $this->form_validation->set_rules('surname', 'Nachname', 'required|trim');
+
+        if ($this->input->post('password'))
+        {
+            $this->form_validation->set_rules('password', 'Passwort', 'required|trim');
+            $this->form_validation->set_rules('cpassword', 'Passwort bestätigen', 'required|trim|matches[password]');
+        }
+
+        $data['prename'] = $this->input->post('prename');
+        $data['surname'] = $this->input->post('surname');
+
+        if($this->form_validation->run())
+        {
+            if (!$this->input->post('password'))
+            {
+                $this->account_model->updateUser($this->session->userdata('userid'));
+                $this->session->set_userdata('prename', $this->input->post('prename'));
+                $this->session->set_userdata('surname', $this->input->post('surname'));
+            }
+            else
+            {
+                $this->account_model->updateUserWithPw($this->session->userdata('userid'), $this->session->userdata('salt'));
+                $this->session->set_userdata('prename', $this->input->post('prename'));
+                $this->session->set_userdata('surname', $this->input->post('surname'));
+            }
+
+            $userData = $this->account_model->getUser($this->session->userdata('userid'));
+            $data['prename'] = $userData[0]['prename'];
+            $data['surname'] = $userData[0]['surname'];
+        }
 
         $this->load->view('account/profile', $data);
 
