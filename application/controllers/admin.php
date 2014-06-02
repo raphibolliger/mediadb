@@ -97,7 +97,7 @@ class Admin extends CI_Controller
         // generate a html table with allUserdata
         $tmpl = array('table_open' => '<table class="table table-striped">');
         $this->table->set_template($tmpl);
-        $this->table->set_heading('ID', 'Vorname', 'Nachname', 'Email', 'Rechte', 'Status', '');
+        $this->table->set_heading('ID', 'Vorname', 'Nachname', 'Email', 'Rechte', '');
         return $this->table->generate($allUsers);
     }
 }
